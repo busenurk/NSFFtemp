@@ -1,0 +1,137 @@
+---
+title: "Title of Your Study"
+author: "Your name"
+date: "2024-06-11"
+output:
+  html_document:
+    theme: flatly
+    toc: yes
+    toc_float: yes
+  word_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+bibliography: ref.bib
+---
+
+<img src="images/logo.png" style="position:absolute;top:90px;right:45px;" width="200" /> 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+# install.packages("pacman")  ## you should download this package firstly! It is off because of knitting error
+
+pacman::p_load(tidyverse,     # tidydataset and viz
+               gt,
+               gt_summary,
+               gtExtra,
+               plotly,        # intercative plots
+               ggplot2,
+               htmlwidgets,
+               webshot,
+               tinytex
+)
+```
+
+---
+
+## R Markdown
+
+This is an R Markdown[@Rproject] document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+
+### GT Table
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. 
+
+```{r gt, echo=FALSE, fig.cap= 'Table1. The name of your table'}
+mockdata <- read_csv(here::here("data/mockdata.csv")) %>% 
+  mutate_at(vars(starts_with("ae_")), ~as.factor(.)) %>% 
+  mutate(fu_fct = fct_recode(as.factor(fu_stat), 
+                             "Lived" = "1", 
+                             "Died" = "2"))
+
+
+mockdata %>% 
+  select(country, sex, age, bmi, fu_fct) %>% 
+  group_by(sex, country) %>% 
+  summarise(mean_age = round(mean(age),0), 
+            max_bmi = round(max(bmi, na.rm = T),2), 
+            death = sum(fu_fct == 'Died')/1356) %>% 
+  gt::gt() %>% 
+  gtExtras::gt_add_divider(columns = c('country', 'max_bmi'), 
+                           weight = px(2), color = '#d7d6d7', 
+                           style = 'dotted') %>% 
+  fmt_percent( columns = c('death'), decimals = 1) %>% 
+  cols_label(country = 'Country', mean_age = 'Mean Age', 
+             max_bmi = 'Maximum BMI', death = 'Percentage of Death') %>% 
+  tab_options(column_labels.background.color = '#d2f8d2') %>% 
+  tab_style(style = list(cell_text(weight = 'bold')), 
+            locations = cells_body(columns = 5, rows = 5)) 
+```
+
+<br>
+
+We can also mention the result directly in the text, like this: **the maximum age in the data is `r max(mockdata$age)`.**
+
+<br>
+
+### Including Plots
+
+You can also embed plots, for example:
+
+<br>
+
+```{r gender_gap, echo=FALSE, message=FALSE, warning=FALSE}
+library(plotly)
+
+data <- read.csv("https://raw.githubusercontent.com/plotly/datasets/master/school_earnings.csv")
+
+data$State <- as.factor(c('Massachusetts', 'California', 'Massachusetts', 'Pennsylvania', 'New Jersey', 'Illinois', 'Washington DC',
+                          'Massachusetts', 'Connecticut', 'New York', 'North Carolina', 'New Hampshire', 'New York', 'Indiana',
+                          'New York', 'Michigan', 'Rhode Island', 'California', 'Georgia', 'California', 'California'))
+
+gender_gap <- plot_ly(data, x = ~Women, y = ~Men, text = ~School, type = 'scatter', mode = 'markers', size = ~Gap, color = ~State, colors = 'Paired',
+        #Choosing the range of the bubbles' sizes:
+        sizes = c(10, 50),
+        marker = list(opacity = 0.5, sizemode = 'diameter'))
+gender_gap <- gender_gap %>% layout(title = 'Gender Gap in Earnings per University',
+         xaxis = list(showgrid = FALSE),
+         yaxis = list(showgrid = FALSE),
+         showlegend = FALSE)
+
+gender_gap
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+<br>
+
+### Images
+
+```{r image, echo=TRUE, out.width="30%", fig.cap='The Scream, 1893.', fig.align='center'}
+knitr::include_graphics("images/scream.jpg")
+```
+
+<br>
+
+### Limitations
+
+- The only limitation is unlimited resources; you shouldn't lose yourself in colors, gifs, and spending days shaping your report. Remember to look at your watch sometimes 👀⌚️.
+
+<br>
+
+🚀 If you want to dive into a cool protocol paper, check it out here: [@mortier2024developing](https://link.springer.com/article/10.1186/s12888-024-05659-6), enjoy!
+
+
+<br>
+
+
+----
+
+## References
+
